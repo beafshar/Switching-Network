@@ -2,7 +2,6 @@
 #define SWITCH_H
 
 #include "headers.h"
-using namespace std;
 
 class Switch
 {

@@ -13,7 +13,6 @@ void Switch::connect(int system_number, int port_numnbr)
     return;
 }
 
-
 void Switch::send(int system_number_1, int system_number_2)
 {
     return;
