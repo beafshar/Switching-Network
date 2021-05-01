@@ -19,7 +19,6 @@
 #include <map>
 #include <vector>
 
-
 using namespace std;
 
 void input_handler(string input);

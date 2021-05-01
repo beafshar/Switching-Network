@@ -1,9 +1,11 @@
 #include "switch.h"
 
-Switch::Switch(int number_of_ports, int switch_number)
+Switch::Switch(int number_of_ports, int switch_number, int file_d[2])
 {
     number_of_ports = number_of_ports;
     switch_number = switch_number;
+    fd[0] = file_d[0];
+    fd[1] = file_d[1];
 }
 
 void Switch::connect(int system_number, int port_numnbr)
