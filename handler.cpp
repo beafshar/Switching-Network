@@ -23,17 +23,12 @@ void Handler::input_handler()
         make_new_system(stoi(tokens[1]));
     
     if (tokens[0].compare("Connect") == 0)
-        connect_system_to_switch(stoi(tokens[1]), stoi(tokens[2]), stoi(tokens[3]));
+        connect_system_to_switch(current_input, stoi(tokens[1]), stoi(tokens[2]), stoi(tokens[3]));
 }
 
 void Handler::make_new_switch(int number_of_ports, int switch_number)
 {
-    int fd[2];
-    if (pipe(fd)==-1)
-    {
-        fprintf(stderr, "Pipe Failed" );
-        return;
-    }
+    
     pid_t p;
     p = fork();
     if (p<0)
@@ -43,26 +38,17 @@ void Handler::make_new_switch(int number_of_ports, int switch_number)
     }
     else if (p > 0)
     {
-        vector<int> f;
-        f.push_back(fd[0]);
-        f.push_back(fd[1]);
-        switch_file_discriptors.push_back(f);
         switches.push_back(switch_number);
     }
     else
     {
-        Switch s(number_of_ports, switch_number, fd);
+        Switch s(number_of_ports, switch_number);
+        s.switch_handler();
     }
 }
 
 void Handler::make_new_system(int system_number)
 {
-    int fd[2];
-    if (pipe(fd)==-1)
-    {
-        fprintf(stderr, "Pipe Failed" );
-        return;
-    }
     pid_t p;
     p = fork();
     if (p<0)
@@ -72,19 +58,25 @@ void Handler::make_new_system(int system_number)
     }
     else if (p > 0)
     {
-        vector<int> f;
-        f.push_back(fd[0]);
-        f.push_back(fd[1]);
-        system_file_discriptors.push_back(f);
-        switches.push_back(system_number);
+        systems.push_back(system_number);
     }
     else
     {
-        System s(system_number, fd);
+        System s(system_number);
     }
 }
 
-void Handler::connect_system_to_switch(int system_number, int switch_number, int port_number)
+void Handler::connect_system_to_switch(string connect, int system_number, int switch_number, int port_number)
 {
-    
+    string name = "switch " + to_string(switch_number) + " " + to_string(port_number);
+    char* pipe;
+    string str_obj(name);
+    pipe = &str_obj[0];
+    int fd = open(pipe, O_WRONLY);
+    const char *pchar = connect.c_str();
+    char inp[100];
+    strcpy(inp, pchar);
+    write(fd,inp,strlen(inp));
+    close(fd);
+    return;
 }
