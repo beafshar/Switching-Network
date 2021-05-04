@@ -6,21 +6,21 @@
 class Switch
 {
     public:
-        Switch(int number_of_ports, int switch_number, int read_fd);
+        Switch(int number_of_ports, int switch_number, string named_pipe);
         void connect(int system_number, int port_numnbr);
         void send(int system_number_1, int system_number_2);
         void recieve(int system_number_1, int system_number_2);
         void switch_handler();
-        void listen_to_parrent(fd_set fds);
-        void listen_to_fifo(fd_set fds, int maxfd);
+        void listen_to_parrent();
+        void listen_to_fifo();
     private:
         int number_of_ports;
         int switch_number;
-        int unnamed_pipe;
+        char* pipe;
         vector<string> pipes;
         vector<int> fd;
         map <int, int> lookup_table;
-        map <string, int> file_d;
+        map <int,string> file_d;
 };
 
 #endif

@@ -1,31 +1,44 @@
 #include "switch.h"
 
-Switch::Switch(int number_of_ports, int switch_number, int read_fd)
+Switch::Switch(int number_of_ports, int switch_number, string named_pipe)
 {
     
     number_of_ports = number_of_ports;
     switch_number = switch_number;
-    unnamed_pipe = read_fd;
+    pipe = &named_pipe[0];
     for (int i=0; i<number_of_ports; i++)
     {
-        string name = "switch " + to_string(switch_number) + to_string(i+1);
+        string name = "switch " + to_string(switch_number)+ " " + to_string(i+1);
         char* pipe = &name[0];
         pipes.push_back(name);
         mkfifo(pipe, 0666);
-        
     }
-
+    
 }
 
 void Switch::connect(int system_number, int port_number)
 {
-    lookup_table.insert({port_number,system_number});
-    file_d.insert({pipes[port_number-1],port_number});
+    lookup_table.insert({system_number,port_number});
+    file_d.insert({port_number,pipes[port_number-1]});
     return;
 }
 
 void Switch::send(int system_number_1, int system_number_2)
 {
+    char input[100];
+    memset(input, 0, sizeof(input));
+    string port_pipe_name = file_d[lookup_table[system_number_1]];
+    char* port_pipe = &port_pipe_name[0];
+    // int fd = open(port_pipe, O_NONBLOCK);
+    // if (fd>=0)
+    // {
+    //     if (read(fd, input, sizeof(input))>0)
+    //     {
+    //         cout << input << "    to switch" << endl;
+    //         memset(input, 0, sizeof(input));
+    //     }
+    // }
+    // close (fd);
     return;
 }
 
@@ -34,21 +47,20 @@ void Switch::recieve(int system_number_1, int system_number_2)
     return;
 }
 
-void Switch::listen_to_parrent(fd_set fds)
+void Switch::listen_to_parrent()
 {
     char input[100];
-
-    FD_ZERO(&fds);
-    if (int res = FD_ISSET(unnamed_pipe, &fds))
+    memset(input, 0, sizeof(input));
+    int fd = open(pipe, O_NONBLOCK);
+    if (fd>=0)
     {
-        if (read(unnamed_pipe, input, sizeof(input))>0)
-        {          
+        if (read(fd, input, sizeof(input))>0)
+        {      
+               
             string command(input);
-
             vector <string> tokens;
             stringstream check1(command); 
             string intermediate;
-            cout <<tokens[0]<<endl;
 
             while(getline(check1, intermediate, ' '))
                 tokens.push_back(intermediate); 
@@ -65,13 +77,14 @@ void Switch::listen_to_parrent(fd_set fds)
             memset(input, 0, sizeof(input));
         }
     }
-
-    
+    close (fd);
 }
 
-void Switch::listen_to_fifo(fd_set fds, int maxfd)
+void Switch::listen_to_fifo()
 {
-    
+    fd_set fds;
+    int maxfd = -1;
+
     char input[100];
 
     FD_ZERO(&fds);
@@ -111,25 +124,18 @@ void Switch::listen_to_fifo(fd_set fds, int maxfd)
 void Switch::switch_handler()
 {
 
-    fd_set fds;
-    int maxfd = -1;
-
-    for (int i = 0; i < pipes.size(); i++) 
-	{ 	
-        cout << i <<pipes[i] << "   " <<" line 45"<<endl;
-        int fd_temp = open(&pipes[i][0], O_RDONLY, O_NONBLOCK);
-        fd.push_back(fd_temp);
-        cout << fd[i];
-	}
+    // for (int i = 0; i < pipes.size(); i++) 
+	// {
+    //     int fd_temp = open(&pipes[i][0], O_NONBLOCK);
+    //     fd.push_back(fd_temp);
+	// }
 
     while(true){
 
-        listen_to_parrent(fds);
-        listen_to_fifo(fds, maxfd);
+        listen_to_parrent();
+        // listen_to_fifo(fds, maxfd);
 
     }
-    
-
 
     for (int i = 0; i < pipes.size(); i++) 
 	{ 	

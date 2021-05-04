@@ -18,14 +18,15 @@ void Handler::input_handler()
 
     if (tokens[0].compare("MySwitch") == 0)
         make_new_switch(stoi(tokens[1]), stoi(tokens[2]));
-
-    if (tokens[0].compare("‫‪MySystem‬‬") == 0)
+    
+    if (tokens[0].compare("MySystem") == 0)
         make_new_system(stoi(tokens[1]));
     
-    if (tokens[0].compare("Connect") == 0){
-        connect_system_to_switch(current_input, stoi(tokens[1]), stoi(tokens[2]), stoi(tokens[3]));
-    }
-        
+    if (tokens[0].compare("Connect") == 0)
+        connect_system_to_switch(current_input, stoi(tokens[1]), stoi(tokens[2]));
+
+    if (tokens[0].compare("Send") == 0)
+        connect_system_to_switch(current_input, stoi(tokens[1]), system_switches[stoi(tokens[1])]);
 }
 
 void Handler::make_new_switch(int number_of_ports, int switch_number)
@@ -33,13 +34,9 @@ void Handler::make_new_switch(int number_of_ports, int switch_number)
     
     pid_t p;
     p = fork();
-    int fd[2]; // 0 for read, 1 for write
 
-    if (pipe(fd) < 0 )
-    {
-            printf("error occured in opening province pipe.\n");
-    }
-
+    string name = "switch " + to_string(switch_number);
+    char* pipe = &name[0];
     if (p<0)
     {
         fprintf(stderr, "fork Failed" );
@@ -47,28 +44,24 @@ void Handler::make_new_switch(int number_of_ports, int switch_number)
     }
     else if (p > 0)
     {
-        close(fd[0]);
-        switches.insert({switch_number, fd[1]});
+        mkfifo(pipe, 0666);
     }
     else
     {
-        close(fd[1]);
-        Switch s(number_of_ports, switch_number,fd[0]);
+        Switch s(number_of_ports, switch_number, pipe);
         s.switch_handler();
     }
 }
 
 void Handler::make_new_system(int system_number)
 {
+    
     pid_t p;
     p = fork();
 
-    int fd[2]; // 0 for read, 1 for write
+    string name = "system " + to_string(system_number);
+    char* pipe = &name[0];
 
-    if (pipe(fd) < 0 )
-    {
-            printf("error occured in opening province pipe.\n");
-    }
     if (p<0)
     {
         fprintf(stderr, "fork Failed" );
@@ -76,36 +69,42 @@ void Handler::make_new_system(int system_number)
     }
     else if (p > 0)
     {
-        close(fd[0]);
-        systems.insert({system_number, fd[1]});
+        mkfifo(pipe, 0666);
     }
     else
     {
-        close(fd[1]);
-        System s(system_number, fd[0]);
+        System s(system_number, name);
+        s.system_handler();
     }
 }
 
-void Handler::connect_system_to_switch(string connect, int system_number, int switch_number, int port_number)
+void Handler::connect_system_to_switch(string connect, int system_number, int switch_number)
 {
-
-
-    
     const char *pchar = connect.c_str();
     char inp[100];
     strcpy(inp, pchar);
 
-    int switch_fd = switches[switch_number];
+    int flag=0;
+    for (map<int, int>::iterator it = system_switches.begin(); it != system_switches.end(); ++it)
+        if (it->first == system_number)
+        {
+            flag = 1;
+            break;
+        }
+    if (flag==0)
+        system_switches.insert({system_number,switch_number});
 
-    cout << switch_fd << endl;
-    write(switch_fd,inp, SIZE);
+    string name = "switch " + to_string(switch_number);
+    char* pipe = &name[0];
+    int fd = open(pipe, O_WRONLY);
+    write(fd,inp,strlen(inp));
+    close(fd);
 
-    cout << connect<<"jjjjjjjj" << endl;
-
-    int system_fd = systems[system_number];
-    write(system_fd,inp, SIZE);
-
-    cout << "kkkkkkkkkkkkkkkk"<< endl;
+    string name_1 = "system " + to_string(switch_number);
+    char* pipe_1 = &name_1[0];
+    int fd_1 = open(pipe_1, O_WRONLY);
+    write(fd_1,inp,strlen(inp));
+    close(fd_1);
 
     return;
 }

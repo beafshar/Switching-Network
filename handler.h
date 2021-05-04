@@ -10,9 +10,9 @@ class Handler
         void input_handler();
         void make_new_switch(int number_of_ports, int switch_number);
         void make_new_system(int system_number);
-        void connect_system_to_switch(string connect, int system_number, int switch_number, int port_number);
+        void connect_system_to_switch(string connect, int system_number, int switch_number);
+        void send(string input, int system);
     private:
         string current_input;
-        map<int, int> switches;
-        map<int, int> systems;
+        map<int, int> system_switches;
 };
