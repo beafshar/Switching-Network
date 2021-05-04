@@ -1,8 +1,9 @@
 #include "system.h"
 
-System::System(int system_number)
+System::System(int system_number, int read_fd)
 {
     system_number = system_number;
+    unnamed_pipe = read_fd;
 }
 
 void System::connect(int system_number, int switch_number, int port_number)

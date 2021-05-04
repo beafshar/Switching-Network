@@ -21,6 +21,9 @@
 
 using namespace std;
 
+
+#define SIZE 1024
+
 void input_handler(string input);
 
 #endif

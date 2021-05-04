@@ -13,6 +13,6 @@ class Handler
         void connect_system_to_switch(string connect, int system_number, int switch_number, int port_number);
     private:
         string current_input;
-        vector<int> switches;
-        vector<int> systems;
+        map<int, int> switches;
+        map<int, int> systems;
 };

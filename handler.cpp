@@ -22,8 +22,10 @@ void Handler::input_handler()
     if (tokens[0].compare("‫‪MySystem‬‬") == 0)
         make_new_system(stoi(tokens[1]));
     
-    if (tokens[0].compare("Connect") == 0)
+    if (tokens[0].compare("Connect") == 0){
         connect_system_to_switch(current_input, stoi(tokens[1]), stoi(tokens[2]), stoi(tokens[3]));
+    }
+        
 }
 
 void Handler::make_new_switch(int number_of_ports, int switch_number)
@@ -31,6 +33,13 @@ void Handler::make_new_switch(int number_of_ports, int switch_number)
     
     pid_t p;
     p = fork();
+    int fd[2]; // 0 for read, 1 for write
+
+    if (pipe(fd) < 0 )
+    {
+            printf("error occured in opening province pipe.\n");
+    }
+
     if (p<0)
     {
         fprintf(stderr, "fork Failed" );
@@ -38,11 +47,13 @@ void Handler::make_new_switch(int number_of_ports, int switch_number)
     }
     else if (p > 0)
     {
-        switches.push_back(switch_number);
+        close(fd[0]);
+        switches.insert({switch_number, fd[1]});
     }
     else
     {
-        Switch s(number_of_ports, switch_number);
+        close(fd[1]);
+        Switch s(number_of_ports, switch_number,fd[0]);
         s.switch_handler();
     }
 }
@@ -51,6 +62,13 @@ void Handler::make_new_system(int system_number)
 {
     pid_t p;
     p = fork();
+
+    int fd[2]; // 0 for read, 1 for write
+
+    if (pipe(fd) < 0 )
+    {
+            printf("error occured in opening province pipe.\n");
+    }
     if (p<0)
     {
         fprintf(stderr, "fork Failed" );
@@ -58,25 +76,36 @@ void Handler::make_new_system(int system_number)
     }
     else if (p > 0)
     {
-        systems.push_back(system_number);
+        close(fd[0]);
+        systems.insert({system_number, fd[1]});
     }
     else
     {
-        System s(system_number);
+        close(fd[1]);
+        System s(system_number, fd[0]);
     }
 }
 
 void Handler::connect_system_to_switch(string connect, int system_number, int switch_number, int port_number)
 {
-    string name = "switch " + to_string(switch_number) + " " + to_string(port_number);
-    char* pipe;
-    string str_obj(name);
-    pipe = &str_obj[0];
-    int fd = open(pipe, O_WRONLY);
+
+
+    
     const char *pchar = connect.c_str();
     char inp[100];
     strcpy(inp, pchar);
-    write(fd,inp,strlen(inp));
-    close(fd);
+
+    int switch_fd = switches[switch_number];
+
+    cout << switch_fd << endl;
+    write(switch_fd,inp, SIZE);
+
+    cout << connect<<"jjjjjjjj" << endl;
+
+    int system_fd = systems[system_number];
+    write(system_fd,inp, SIZE);
+
+    cout << "kkkkkkkkkkkkkkkk"<< endl;
+
     return;
 }
