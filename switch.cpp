@@ -72,8 +72,8 @@ void Switch::send(int system_number_1, int system_number_2)
         }
     }
     
-    // cout << flag << endl;
-    // cout << "data sent!"<<endl;
+    cout << flag << endl;
+    cout << "data sent!"<<endl;
     if (flag == 0)
         broadcast(input);
 
@@ -156,6 +156,7 @@ int main(int argc, char** argv)
 
     string pipe = "switch " + to_string(stoi(tokens[1]));
 
+    // siginterrupt(SIGALRM, 1);
     Switch sw(stoi(tokens[0]), stoi(tokens[1]), pipe);
     sw.switch_handler();
 }

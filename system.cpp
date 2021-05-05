@@ -128,8 +128,11 @@ void System::system_handler()
 {
     while (true)
     {
+        signal(SIGALRM,sig_handler);
+        alarm(TIMEOUT);
         get_command();
-        // recieve_data();
+        alarm(0);
+        recieve_data();
     }
 }
 
@@ -138,6 +141,7 @@ int main(int argc, char** argv)
     string s(argv[0]);
     string pipe = "system " + to_string(stoi(s));
 
+    siginterrupt(SIGALRM, 1);
     System sy(stoi(s), pipe);
     sy.system_handler();
 }
