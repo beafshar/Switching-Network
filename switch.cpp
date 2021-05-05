@@ -42,10 +42,8 @@ void Switch::send(int system_number_1, int system_number_2)
     char input[100];
     memset(input, 0, sizeof(input));
     string port_pipe_name = file_d[lookup_table[system_number_1]];
-    cout << port_pipe_name  << " send "<< endl;
     char* port_pipe = &port_pipe_name[0];
-    int fd = open(port_pipe,O_NONBLOCK);
-    cout << "FD " << fd << endl;
+    int fd = open(port_pipe, O_RDONLY);
     if (fd>=0)
     {
         if (read(fd, input, sizeof(input))>0)
@@ -64,7 +62,7 @@ void Switch::send(int system_number_1, int system_number_2)
         {
             string port_name = file_d[lookup_table[it->first]];
             char* port_pipe = &port_name[0];
-            int fd = open(port_pipe, O_WRONLY, O_NONBLOCK);
+            int fd = open(port_pipe, O_WRONLY);
             cout << "sys FD " << fd  << "   " << port_name<< endl;
             write(fd, input, strlen(input));
             close(fd);
@@ -74,8 +72,8 @@ void Switch::send(int system_number_1, int system_number_2)
         }
     }
     
-    cout << flag << endl;
-    cout << "data sent!"<<endl;
+    // cout << flag << endl;
+    // cout << "data sent!"<<endl;
     if (flag == 0)
         broadcast(input);
 
@@ -107,7 +105,7 @@ void Switch::listen_to_parrent()
     char input[100];
     memset(input, 0, sizeof(input));
 
-    int fd = open(&pipe[0],O_RDONLY, O_NONBLOCK);
+    int fd = open(&pipe[0],O_RDONLY);
     
     if (fd>=0)
     {

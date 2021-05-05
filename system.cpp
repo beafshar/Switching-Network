@@ -29,30 +29,29 @@ void System::send()
     string temp = "switch " + to_string(switch_number) + " " + to_string(port);
     char* p = &temp[0];
     cout << temp <<" hello send system\n";
-    int fd = open(p, O_WRONLY, O_NONBLOCK);
-    cout << temp  << fd << endl;
-    write(fd,data,strlen(data));
+    int fd = open(p, O_WRONLY);
+    int t = write(fd,data,strlen(data));
     close(fd);
     return;
 }
 
-// void System::recieve()
-// {
-//     char input[100];
-//     memset(input, 0, sizeof(input));
-//     string temp = "switch " + to_string(switch_number) + " " + to_string(port);
-//     char* p = &temp[0];
-//     int fd = open(p, O_NONBLOCK);
-//     if (fd>=0)
-//     {
-//         wait(NULL);
-//         read(fd, input, sizeof(input));
-//         cout << input << "    from other system!" << endl;
-//         memset(input, 0, sizeof(input));
-//     }
-//     close (fd);
-//     return;
-// }
+void System::recieve()
+{
+    char input[100];
+    memset(input, 0, sizeof(input));
+    string temp = "switch " + to_string(switch_number) + " " + to_string(port);
+    char* p = &temp[0];
+    int fd = open(p, O_RDONLY);
+    if (fd>=0)
+    {
+        wait(NULL);
+        read(fd, input, sizeof(input));
+        cout << input << "    from other system!" << endl;
+        memset(input, 0, sizeof(input));
+    }
+    close (fd);
+    return;
+}
 
 void System::get_command()
 {
@@ -60,7 +59,7 @@ void System::get_command()
     char input[100];
     memset(input, 0, sizeof(input));
     
-    int fd = open(&pipe[0],O_RDONLY, O_NONBLOCK);
+    int fd = open(&pipe[0],O_RDONLY);
     if (fd>=0)
     {
         // signal(SIGALRM,sig_handler);
@@ -68,7 +67,6 @@ void System::get_command()
         int res = read(fd, input, sizeof(input));
         if (res>0)
         {
-            cout << input<<" sys got command\n";
 
             string command(input);
             vector <string> tokens;
@@ -102,8 +100,8 @@ void System::recieve_data()
     string temp = "switch " + to_string(switch_number) + " " + to_string(port);
     char* p = &temp[0];
 
-    int fd = open(p,O_RDONLY, O_NONBLOCK);
-    cout << "recive fd "<< fd << endl;
+    int fd = open(p, O_RDONLY);
+
     if (fd>=0)
     {
         if (read(fd, input, sizeof(input))>0)
@@ -131,7 +129,7 @@ void System::system_handler()
     while (true)
     {
         get_command();
-        recieve_data();
+        // recieve_data();
     }
 }
 
