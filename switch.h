@@ -12,7 +12,7 @@ class Switch
         void recieve(int system_number_1, int system_number_2);
         void switch_handler();
         void listen_to_parrent();
-        void listen_to_fifo();
+        void broadcast(char* data);
     private:
         int number_of_ports;
         int switch_number;

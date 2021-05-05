@@ -9,8 +9,11 @@ class System
         System(int system_number, string my_pipe);
         void connect(int s_number, int p_number);
         void send();
-        void recieve(string data);
+        void recieve();
         void system_handler();
+        void get_command();
+        void recieve_data();
+        
     private:
         char* pipe;
         int system_number;
@@ -19,5 +22,6 @@ class System
         int fram_size;
 };
 
+void sig_handler(int signum);
 
 #endif

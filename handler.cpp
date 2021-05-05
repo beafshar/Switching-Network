@@ -25,8 +25,9 @@ void Handler::input_handler()
     if (tokens[0].compare("Connect") == 0)
         connect_system_to_switch(current_input, stoi(tokens[1]), stoi(tokens[2]));
 
-    if (tokens[0].compare("Send") == 0)
+    if (tokens[0].compare("Send") == 0 || tokens[0].compare("Recieve") == 0)
         connect_system_to_switch(current_input, stoi(tokens[1]), system_switches[stoi(tokens[1])]);
+    
 }
 
 void Handler::make_new_switch(int number_of_ports, int switch_number)

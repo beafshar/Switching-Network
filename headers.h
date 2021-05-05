@@ -18,11 +18,14 @@
 #include <cstdint>
 #include <map>
 #include <vector>
+#include<sys/wait.h>
+#include <signal.h>
 
 using namespace std;
 
 
 #define SIZE 1024
+#define TIMEOUT 0.001
 
 void input_handler(string input);
 

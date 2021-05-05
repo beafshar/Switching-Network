@@ -2,7 +2,7 @@
 
 Switch::Switch(int number_of_ports, int switch_number, string named_pipe)
 {
-    
+    siginterrupt(SIGALRM, 1);
     number_of_ports = number_of_ports;
     switch_number = switch_number;
     pipe = &named_pipe[0];
@@ -20,7 +20,20 @@ void Switch::connect(int system_number, int port_number)
 {
     lookup_table.insert({system_number,port_number});
     file_d.insert({port_number,pipes[port_number-1]});
+    cout << "switch: system connected to switch!\n";
     return;
+}
+
+void Switch::broadcast(char* data)
+{
+    for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
+    {
+        string port_pipe_name = file_d[lookup_table[it->first]];
+        char* port_pipe = &port_pipe_name[0];
+        int fd = open(port_pipe, O_WRONLY);
+        write(fd, data, strlen(data));
+        close(fd);
+    }
 }
 
 void Switch::send(int system_number_1, int system_number_2)
@@ -29,22 +42,52 @@ void Switch::send(int system_number_1, int system_number_2)
     memset(input, 0, sizeof(input));
     string port_pipe_name = file_d[lookup_table[system_number_1]];
     char* port_pipe = &port_pipe_name[0];
-    // int fd = open(port_pipe, O_NONBLOCK);
-    // if (fd>=0)
-    // {
-    //     if (read(fd, input, sizeof(input))>0)
-    //     {
-    //         cout << input << "    to switch" << endl;
-    //         memset(input, 0, sizeof(input));
-    //     }
-    // }
-    // close (fd);
+    int fd = open(port_pipe, O_NONBLOCK);
+    if (fd>=0)
+    {
+        if (read(fd, input, sizeof(input))>0)
+        {
+            cout << input << "    to switch" << endl;
+            memset(input, 0, sizeof(input));
+        }
+    }
+    close (fd);
+
+    int flag = 0;
+
+    for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
+        if (it->first == system_number_2)
+        {
+            string port_pipe_name = file_d[lookup_table[it->first]];
+            char* port_pipe = &port_pipe_name[0];
+            int fd = open(port_pipe, O_WRONLY);
+            write(fd, input, strlen(input));
+            close(fd);
+            flag = 1;
+            break;
+        }
+    
+    if (flag == 0)
+        broadcast(input);
+
     return;
 }
 
 void Switch::recieve(int system_number_1, int system_number_2)
 {
-    return;
+    string d = "Send " + to_string(system_number_2) + " " + to_string(system_number_1);
+    char* inp = &d[0]; 
+    for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
+        if (it->first == system_number_2)
+        {
+            string port_pipe_name = file_d[lookup_table[it->first]];
+            char* port_pipe = &port_pipe_name[0];
+            int fd = open(port_pipe, O_WRONLY);
+            write(fd, inp, strlen(inp));
+            close(fd);
+            break;
+        }
+    send(system_number_2, system_number_1);
 }
 
 void Switch::listen_to_parrent()
@@ -54,9 +97,9 @@ void Switch::listen_to_parrent()
     int fd = open(pipe, O_NONBLOCK);
     if (fd>=0)
     {
+        wait(NULL);
         if (read(fd, input, sizeof(input))>0)
-        {      
-               
+        {   cout << pipe << "   hioad\n";
             string command(input);
             vector <string> tokens;
             stringstream check1(command); 
@@ -80,66 +123,12 @@ void Switch::listen_to_parrent()
     close (fd);
 }
 
-void Switch::listen_to_fifo()
-{
-    fd_set fds;
-    int maxfd = -1;
-
-    char input[100];
-
-    FD_ZERO(&fds);
-
-    for (int i = 0; i < fd.size(); i++) 
-    { 	
-        FD_SET(fd[i] , &fds);
-        if(fd[i] > maxfd) 
-            maxfd = fd[i];
-    }
-
-    select( maxfd + 1 , &fds , NULL , NULL , NULL); 
-    for (int i=0; i<fd.size(); i++)
-    {
-        if (int res = FD_ISSET(fd[i], &fds))
-        {
-            if (read(fd[i], input, sizeof(input))>0)
-            {          
-                string command(input);
-
-                vector <string> tokens;
-                stringstream check1(command); 
-                string intermediate;
-
-                // while(getline(check1, intermediate, ' '))
-                //     tokens.push_back(intermediate); 
-
-                // if (tokens[0].compare("Connect") == 0)
-                //     connect(stoi(tokens[1]), stoi(tokens[2]));
-
-                memset(input, 0, sizeof(input));
-            }
-        }
-        
-    }
-}
 void Switch::switch_handler()
 {
 
-    // for (int i = 0; i < pipes.size(); i++) 
-	// {
-    //     int fd_temp = open(&pipes[i][0], O_NONBLOCK);
-    //     fd.push_back(fd_temp);
-	// }
-
-    while(true){
-
+    while(true)
+    {
         listen_to_parrent();
-        // listen_to_fifo(fds, maxfd);
-
     }
 
-    for (int i = 0; i < pipes.size(); i++) 
-	{ 	
-        close(fd[i]);
-	}
-    
 }
