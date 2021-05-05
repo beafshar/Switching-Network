@@ -115,11 +115,17 @@ void Handler::connect_system_to_switch(string connect, int system_number, int sw
     write(fd,inp,strlen(inp));
     close(fd);
 
-    string name_1 = "system " + to_string(switch_number);
+    cout << "write in switch pipe"<< endl;
+
+    string name_1 = "system " + to_string(system_number);
     char* pipe_1 = &name_1[0];
-    int fd_1 = open(pipe_1, O_WRONLY);
+    cout << name_1 << endl;
+    int fd_1 = open(pipe_1, O_WRONLY, O_NONBLOCK);
+    cout <<"par sys fd " << fd_1 << endl;
     write(fd_1,inp,strlen(inp));
     close(fd_1);
+
+    cout << "write in system pipe " << pipe_1<< endl;
 
     return;
 }
