@@ -56,43 +56,42 @@ void System::send()
 
 void System::get_command()
 {
+    cout <<"sys listen\n";
     char input[100];
-        memset(input, 0, sizeof(input));
-        
-        int fd = open(&pipe[0],O_RDONLY, O_NONBLOCK);
-        cout <<"open fd " << fd <<"   "<< pipe << endl;
-        if (fd>=0)
+    memset(input, 0, sizeof(input));
+    
+    int fd = open(&pipe[0],O_RDONLY, O_NONBLOCK);
+    if (fd>=0)
+    {
+        // signal(SIGALRM,sig_handler);
+        // alarm(TIMEOUT);
+        int res = read(fd, input, sizeof(input));
+        if (res>0)
         {
-            signal(SIGALRM,sig_handler);
-            alarm(TIMEOUT);
-            int res = read(fd, input, sizeof(input));
-            cout << "res "<< res << endl;
-            if (res>0)
-            {
-                cout << input<<"sys got command\n";
+            cout << input<<" sys got command\n";
 
-                string command(input);
-                vector <string> tokens;
-                stringstream check1(command); 
-                string intermediate;
+            string command(input);
+            vector <string> tokens;
+            stringstream check1(command); 
+            string intermediate;
 
-                
+            
 
-                while(getline(check1, intermediate, ' '))
-                    tokens.push_back(intermediate); 
+            while(getline(check1, intermediate, ' '))
+                tokens.push_back(intermediate); 
 
-                if (tokens[0].compare("Connect") == 0)
-                    connect(stoi(tokens[2]), stoi(tokens[3]));
+            if (tokens[0].compare("Connect") == 0)
+                connect(stoi(tokens[2]), stoi(tokens[3]));
 
-                else if (tokens[0].compare("Send") == 0)
-                    send();
+            else if (tokens[0].compare("Send") == 0)
+                send();
 
-                // else if (tokens[0].compare("Recieve") == 0)
-                //     recieve();
+            // else if (tokens[0].compare("Recieve") == 0)
+            //     recieve();
 
-                memset(input, 0, sizeof(input));
-            }
+            memset(input, 0, sizeof(input));
         }
+    }
         close (fd);
 }
 
@@ -102,7 +101,7 @@ void System::recieve_data()
     memset(input, 0, sizeof(input));
     string temp = "switch " + to_string(switch_number) + " " + to_string(port);
     char* p = &temp[0];
-    cout << temp << "  recieve dataaaaaaaaa \n";
+
     int fd = open(p,O_RDONLY, O_NONBLOCK);
     cout << "recive fd "<< fd << endl;
     if (fd>=0)

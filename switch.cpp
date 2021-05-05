@@ -20,7 +20,6 @@ void Switch::connect(int system_number, int port_number)
 {
     lookup_table.insert({system_number,port_number});
     file_d.insert({port_number,pipes[port_number-1]});
-    cout << pipes[port_number-1]<<endl;
     cout << "switch: system connected to switch!\n";
     return;
 }
@@ -45,7 +44,7 @@ void Switch::send(int system_number_1, int system_number_2)
     string port_pipe_name = file_d[lookup_table[system_number_1]];
     cout << port_pipe_name  << " send "<< endl;
     char* port_pipe = &port_pipe_name[0];
-    int fd = open(port_pipe,O_RDONLY ,O_NONBLOCK);
+    int fd = open(port_pipe,O_NONBLOCK);
     cout << "FD " << fd << endl;
     if (fd>=0)
     {
@@ -104,8 +103,10 @@ void Switch::recieve(int system_number_1, int system_number_2)
 
 void Switch::listen_to_parrent()
 {
+    cout <<"listening\n";
     char input[100];
     memset(input, 0, sizeof(input));
+
     int fd = open(&pipe[0],O_RDONLY, O_NONBLOCK);
     
     if (fd>=0)
