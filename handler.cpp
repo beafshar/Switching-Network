@@ -27,7 +27,13 @@ void Handler::input_handler()
 
     if (tokens[0].compare("Send") == 0 || tokens[0].compare("Recieve") == 0)
         connect_system_to_switch(current_input, stoi(tokens[1]), system_switches[stoi(tokens[1])]);
-    
+
+    if(tokens[0].compare("exit") == 0)
+    {
+        for (int i=0; i<child_pid.size(); i++)
+            kill(child_pid[i], SIGKILL);
+        exit(1);
+    }
 }
 
 void Handler::make_new_switch(int number_of_ports, int switch_number)
@@ -45,12 +51,17 @@ void Handler::make_new_switch(int number_of_ports, int switch_number)
     }
     else if (p > 0)
     {
+        child_pid.push_back(p);
         mkfifo(pipe, 0666);
     }
     else
     {
-        Switch s(number_of_ports, switch_number, pipe);
-        s.switch_handler();
+        string argc = "./switch.out";
+        char* arg = &argc[0];
+        string num = to_string(number_of_ports) + " " + to_string(switch_number);
+        char *pchar = &num[0]; 
+        char* argv[] = {pchar,NULL};
+        execv(arg, argv);
     }
 }
 
@@ -70,22 +81,25 @@ void Handler::make_new_system(int system_number)
     }
     else if (p > 0)
     {
+        child_pid.push_back(p);
         mkfifo(pipe, 0666);
     }
     else
     {
-        System s(system_number, name);
-        s.system_handler();
+        string argc = "./system.out";
+        char* arg = &argc[0];
+        string system_num = to_string(system_number);
+        char *pchar = &system_num[0]; 
+        char* argv[] = {pchar,NULL};
+        execv(arg, argv);
     }
 }
 
 void Handler::connect_system_to_switch(string connect, int system_number, int switch_number)
 {
-    const char *pchar = connect.c_str();
-    char inp[100];
-    strcpy(inp, pchar);
+    char* inp = &connect[0];
 
-    int flag=0;
+    int flag = 0;
     for (map<int, int>::iterator it = system_switches.begin(); it != system_switches.end(); ++it)
         if (it->first == system_number)
         {

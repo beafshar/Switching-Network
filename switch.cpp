@@ -24,71 +24,72 @@ void Switch::connect(int system_number, int port_number)
     return;
 }
 
-void Switch::broadcast(char* data)
-{
-    for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
-    {
-        string port_pipe_name = file_d[lookup_table[it->first]];
-        char* port_pipe = &port_pipe_name[0];
-        int fd = open(port_pipe, O_WRONLY);
-        write(fd, data, strlen(data));
-        close(fd);
-    }
-}
+// void Switch::broadcast(char* data)
+// {
+//     for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
+//     {
+//         string port_pipe_name = file_d[lookup_table[it->first]];
+//         char* port_pipe = &port_pipe_name[0];
+//         int fd = open(port_pipe, O_WRONLY);
+//         write(fd, data, strlen(data));
+//         close(fd);
+//     }
+// }
 
 void Switch::send(int system_number_1, int system_number_2)
 {
-    char input[100];
-    memset(input, 0, sizeof(input));
-    string port_pipe_name = file_d[lookup_table[system_number_1]];
-    char* port_pipe = &port_pipe_name[0];
-    int fd = open(port_pipe, O_NONBLOCK);
-    if (fd>=0)
-    {
-        if (read(fd, input, sizeof(input))>0)
-        {
-            cout << input << "    to switch" << endl;
-            memset(input, 0, sizeof(input));
-        }
-    }
-    close (fd);
+    cout << "hello send switch\n";
+    // char input[100];
+    // memset(input, 0, sizeof(input));
+    // string port_pipe_name = file_d[lookup_table[system_number_1]];
+    // char* port_pipe = &port_pipe_name[0];
+    // int fd = open(port_pipe, O_NONBLOCK);
+    // if (fd>=0)
+    // {
+    //     if (read(fd, input, sizeof(input))>0)
+    //     {
+    //         cout << input << "    to switch" << endl;
+    //         memset(input, 0, sizeof(input));
+    //     }
+    // }
+    // close (fd);
 
-    int flag = 0;
+    // int flag = 0;
 
-    for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
-        if (it->first == system_number_2)
-        {
-            string port_pipe_name = file_d[lookup_table[it->first]];
-            char* port_pipe = &port_pipe_name[0];
-            int fd = open(port_pipe, O_WRONLY);
-            write(fd, input, strlen(input));
-            close(fd);
-            flag = 1;
-            break;
-        }
+    // for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
+    //     if (it->first == system_number_2)
+    //     {
+    //         string port_pipe_name = file_d[lookup_table[it->first]];
+    //         char* port_pipe = &port_pipe_name[0];
+    //         int fd = open(port_pipe, O_WRONLY);
+    //         write(fd, input, strlen(input));
+    //         close(fd);
+    //         flag = 1;
+    //         break;
+    //     }
     
-    if (flag == 0)
-        broadcast(input);
+    // if (flag == 0)
+    //     broadcast(input);
 
-    return;
+    // return;
 }
 
-void Switch::recieve(int system_number_1, int system_number_2)
-{
-    string d = "Send " + to_string(system_number_2) + " " + to_string(system_number_1);
-    char* inp = &d[0]; 
-    for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
-        if (it->first == system_number_2)
-        {
-            string port_pipe_name = file_d[lookup_table[it->first]];
-            char* port_pipe = &port_pipe_name[0];
-            int fd = open(port_pipe, O_WRONLY);
-            write(fd, inp, strlen(inp));
-            close(fd);
-            break;
-        }
-    send(system_number_2, system_number_1);
-}
+// void Switch::recieve(int system_number_1, int system_number_2)
+// {
+//     string d = "Send " + to_string(system_number_2) + " " + to_string(system_number_1);
+//     char* inp = &d[0]; 
+//     for (map<int, int>::iterator it = lookup_table.begin(); it != lookup_table.end(); ++it)
+//         if (it->first == system_number_2)
+//         {
+//             string port_pipe_name = file_d[lookup_table[it->first]];
+//             char* port_pipe = &port_pipe_name[0];
+//             int fd = open(port_pipe, O_WRONLY);
+//             write(fd, inp, strlen(inp));
+//             close(fd);
+//             break;
+//         }
+//     send(system_number_2, system_number_1);
+// }
 
 void Switch::listen_to_parrent()
 {
@@ -97,9 +98,9 @@ void Switch::listen_to_parrent()
     int fd = open(pipe, O_NONBLOCK);
     if (fd>=0)
     {
-        wait(NULL);
+        // wait(NULL);
         if (read(fd, input, sizeof(input))>0)
-        {   cout << pipe << "   hioad\n";
+        {   
             string command(input);
             vector <string> tokens;
             stringstream check1(command); 
@@ -114,8 +115,8 @@ void Switch::listen_to_parrent()
             else if (tokens[0].compare("Send") == 0)
                 send(stoi(tokens[1]), stoi(tokens[2]));
 
-            else if (tokens[0].compare("Recieve") == 0)
-                recieve(stoi(tokens[1]), stoi(tokens[2]));
+            // else if (tokens[0].compare("Recieve") == 0)
+            //     recieve(stoi(tokens[1]), stoi(tokens[2]));
 
             memset(input, 0, sizeof(input));
         }
@@ -130,5 +131,20 @@ void Switch::switch_handler()
     {
         listen_to_parrent();
     }
+}
 
+int main(int argc, char** argv)
+{
+    string s(argv[0]);
+    vector <string> tokens;
+    stringstream check1(s); 
+    string intermediate;
+
+    while(getline(check1, intermediate, ' '))
+        tokens.push_back(intermediate); 
+
+    string pipe = "switch " + to_string(stoi(tokens[0]));
+
+    Switch sw(stoi(tokens[0]), stoi(tokens[0]), pipe);
+    sw.switch_handler();
 }

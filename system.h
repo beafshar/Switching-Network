@@ -9,10 +9,10 @@ class System
         System(int system_number, string my_pipe);
         void connect(int s_number, int p_number);
         void send();
-        void recieve();
+        // void recieve();
         void system_handler();
         void get_command();
-        void recieve_data();
+        // void recieve_data();
         
     private:
         char* pipe;

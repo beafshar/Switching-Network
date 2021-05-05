@@ -1,5 +1,3 @@
-#include "system.h"
-#include "switch.h"
 #include "handler.h"
 
 int main()
