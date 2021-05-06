@@ -19,7 +19,7 @@ class System
         int system_number;
         int port;
         int switch_number;
-        int fram_size;
+        int frame_size;
 };
 
 void sig_handler(int signum);

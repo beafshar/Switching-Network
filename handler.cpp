@@ -16,17 +16,23 @@ void Handler::input_handler()
     while(getline(check1, intermediate, ' '))
         tokens.push_back(intermediate); 
 
-    if (tokens[0].compare("MySwitch") == 0)
+    if (tokens[0].compare("new_switch") == 0)
         make_new_switch(stoi(tokens[1]), stoi(tokens[2]));
     
-    if (tokens[0].compare("MySystem") == 0)
+    if (tokens[0].compare("new_system") == 0)
         make_new_system(stoi(tokens[1]));
     
-    if (tokens[0].compare("Connect") == 0)
+    if (tokens[0].compare("connect_system_to_switch") == 0)
         connect_system_to_switch(current_input, stoi(tokens[1]), stoi(tokens[2]));
 
-    if (tokens[0].compare("Send") == 0 || tokens[0].compare("Recieve") == 0)
+    if (tokens[0].compare("send_data") == 0 || tokens[0].compare("recieve_data") == 0)
         connect_system_to_switch(current_input, stoi(tokens[1]), system_switches[stoi(tokens[1])]);
+
+    if (tokens[0].compare("connect_switch_to_switch") == 0)
+        connect_switch_to_switch(current_input, stoi(tokens[1]), stoi(tokens[3]));
+
+    if (tokens[0].compare("run_stp") == 0)
+        stp();
 
     if(tokens[0].compare("exit") == 0)
     {
@@ -122,4 +128,26 @@ void Handler::connect_system_to_switch(string connect, int system_number, int sw
     close(fd_1);
 
     return;
+}
+
+void Handler::connect_switch_to_switch(string connect, int switch_number_1, int switch_number_2)
+{
+    char* inp = &connect[0];
+
+    string name = "switch " + to_string(switch_number_1);
+    char* pipe = &name[0];
+    int fd = open(pipe, O_WRONLY);
+    write(fd,inp,strlen(inp));
+    close(fd);
+
+    string name_1 = "switch " + to_string(switch_number_2);
+    char* pipe_1 = &name_1[0]; 
+    int fd_1 = open(pipe_1, O_WRONLY);
+    write(fd_1,inp,strlen(inp));
+    close(fd_1);
+}
+
+void Handler::stp()
+{
+    
 }
